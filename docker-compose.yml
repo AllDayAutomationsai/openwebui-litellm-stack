@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - llm_network
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_CONTEXT_LENGTH=4096
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_KEEP_ALIVE=5m
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    restart: always
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    networks:
+      - llm_network
+    environment:
+      # CRITICAL: Direct connection to Ollama, NOT through litellm-proxy
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - USE_OLLAMA_DOCKER=false
+      - ENABLE_OLLAMA_API=true
+      # Keep existing keys for consistency
+      - LITELLM_MASTER_KEY=DkGrEz6oJvunUmnbNYKBATEW9nRP6GbF192RA9moeOc=
+      - LITELLM_SALT_KEY=S4Mho07/pPwkNfn80qzujQ==
+      # Disable OpenAI by default
+      - OPENAI_API_BASE_URL=
+      - OPENAI_API_KEY=
+    depends_on:
+      - ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Keep litellm services but separate from main stack
+  litellm-db:
+    image: postgres:16
+    container_name: litellm-db
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    restart: always
+    environment:
+      - POSTGRES_DB=litellm_db
+      - POSTGRES_USER=litellmadmin
+      - POSTGRES_PASSWORD=litellm_simple_pw_4567
+    volumes:
+      - litellm-db:/var/lib/postgresql/data
+    networks:
+      - litellm_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  litellm-redis:
+    image: redis:latest
+    container_name: litellm-redis
+    restart: always
+    networks:
+      - litellm_network
+
+  litellm-proxy:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: litellm-proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    env_file: .env
+    restart: always
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+    networks:
+      - litellm_network
+      - llm_network  # Also connect to main network if needed
+    environment:
+      - DATABASE_URL=postgresql://litellmadmin:litellm_simple_pw_4567@litellm-db:5432/litellm_db
+      - REDIS_URL=redis://litellm-redis:6379
+    depends_on:
+      - litellm-db
+      - litellm-redis
+      - ollama
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+
+  litellm-prometheus:
+    image: prom/prometheus
+    container_name: litellm-prometheus
+    restart: always
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - litellm_network
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Update containers but don't change their configurations
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_REVIVE_STOPPED=false
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      # Don't update Open WebUI automatically to prevent config changes
+      - WATCHTOWER_LABEL_ENABLE=true
+    healthcheck:
+      test: ["CMD", "/watchtower", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ollama_data:
+    external: true
+    name: ollama
+  open-webui:
+    external: true
+    name: open-webui
+  litellm-db:
+    external: true
+    name: litellm-db
+  prometheus_data:
+    external: true
+    name: litellm-prometheus
+
+networks:
+  llm_network:
+    name: llm_network
+    driver: bridge
+  litellm_network:
+    name: litellm_llm_network
+    external: true
+
+# Add labels to protect critical services
