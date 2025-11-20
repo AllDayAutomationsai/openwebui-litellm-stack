@@ -1,0 +1,57 @@
+model_list:
+  - model_name: gpt-4
+    litellm_params:
+      model: gpt-4
+      api_key: os.environ/OPENAI_API_KEY
+      max_retries: 3
+      timeout: 120
+      stream_timeout: 60
+  
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: gpt-4-turbo-preview
+      api_key: os.environ/OPENAI_API_KEY
+      max_retries: 3
+      timeout: 120
+  
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+      max_retries: 3
+      timeout: 120
+
+litellm_settings:
+  max_parallel_requests: 100
+  request_timeout: 600
+  telemetry: false
+  max_budget: 1000000
+  budget_duration: 30d
+  num_retries: 3
+  cache: true
+  cache_params:
+    type: redis
+    host: litellm-redis
+    port: 6379
+    ttl: 3600
+  
+router_settings:
+  routing_strategy: usage-based-routing-v2
+  enable_loadbalancing: true
+  retry_after: 5
+  cooldown_time: 30
+  allowed_fails: 2
+  
+general_settings:
+  database_url: postgresql://litellmadmin:litellm_simple_pw_4567@litellm-db:5432/litellm_db
+  master_key: os.environ/LITELLM_MASTER_KEY
+  store_model_in_db: true
+  
+  # Performance settings
+  background_workers: 4
+  health_check_interval: 60
+  
+  # Request batching
+  enable_batching: true
+  batch_size: 10
+  batch_window_ms: 50

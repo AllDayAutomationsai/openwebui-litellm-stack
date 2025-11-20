@@ -1,4 +1,10 @@
+.env
+*.backup*
+*.bak*
+*.old
+*.archived*
+backups/
+*.db
+*.gz
 *.log
-*.bak
-*.tmp
-.env.local
+*.before-pin*

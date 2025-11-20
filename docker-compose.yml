@@ -1,148 +1,173 @@
-version: '3.8'
-
 services:
   ollama:
     image: ollama/ollama:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ollama
     restart: always
     ports:
-      - "11434:11434"
+    - 127.0.0.1:11434:11434
     volumes:
-      - ollama_data:/root/.ollama
+    - ollama:/root/.ollama
     networks:
-      - llm_network
+    - llm_network
     environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-      - OLLAMA_CONTEXT_LENGTH=4096
-      - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_KEEP_ALIVE=5m
-
+    - ENABLE_STREAMING_RESPONSE=true
+    - STREAM_TIMEOUT=0
+    - DEFAULT_MODELS_STREAM=true
+    - LITELLM_PERSISTENT_CONNECTIONS=true
+    - LITELLM_CONNECTION_POOL_SIZE=20
+    - HTTPX_HTTP2=1
+    - OLLAMA_NUM_PARALLEL=4
+    - OLLAMA_MAX_LOADED_MODELS=2
+    - OLLAMA_HOST=0.0.0.0:11434
+    dns: &id001
+    - 1.1.1.1
+    - 8.8.8.8
+    - 1.0.0.1
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+    - com.centurylinklabs.watchtower.enable=true
     restart: always
     ports:
-      - "3000:8080"
+    - 127.0.0.1:3000:8080
     volumes:
-      - open-webui:/app/backend/data
+    - open-webui:/app/backend/data
     networks:
-      - llm_network
+    - llm_network
     environment:
-      # CRITICAL: Direct connection to Ollama, NOT through litellm-proxy
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - USE_OLLAMA_DOCKER=false
-      - ENABLE_OLLAMA_API=true
-      # Keep existing keys for consistency
-      - LITELLM_MASTER_KEY=DkGrEz6oJvunUmnbNYKBATEW9nRP6GbF192RA9moeOc=
-      - LITELLM_SALT_KEY=S4Mho07/pPwkNfn80qzujQ==
-      # Disable OpenAI by default
-      - OPENAI_API_BASE_URL=
-      - OPENAI_API_KEY=
+    - ENABLE_STREAMING_RESPONSE=true
+    - STREAM_TIMEOUT=0
+    - DEFAULT_MODELS_STREAM=true
+    - LITELLM_PERSISTENT_CONNECTIONS=true
+    - LITELLM_CONNECTION_POOL_SIZE=20
+    - HTTPX_HTTP2=1
+    - OPENAI_API_BASE_URL=http://litellm-proxy:4000/v1
+    - OPENAI_API_KEY=sk-Mwo8Vu-yqtdy2yssBiXAtg
+    - OLLAMA_BASE_URL=http://litellm-proxy:4000
+    - USE_OLLAMA_DOCKER=false
+    - ENABLE_OLLAMA_API=true
+    - LITELLM_MASTER_KEY=DkGrEz6oJvunUmnbNYKBATEW9nRP6GbF192RA9moeOc=
+    - LITELLM_SALT_KEY=S4Mho07/pPwkNfn80qzujQ==
+    - WEBUI_SECRET_KEY=056a8ba01c4c225d10a2746a4e95ab012b8103aec33b02f921c2825390d4232d
     depends_on:
-      - ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
-  # Keep litellm services but separate from main stack
+    - ollama
+    - litellm-proxy
+    dns: *id001
   litellm-db:
     image: postgres:16
     container_name: litellm-db
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+    - com.centurylinklabs.watchtower.enable=true
     restart: always
     environment:
-      - POSTGRES_DB=litellm_db
-      - POSTGRES_USER=litellmadmin
-      - POSTGRES_PASSWORD=litellm_simple_pw_4567
+    - ENABLE_STREAMING_RESPONSE=true
+    - STREAM_TIMEOUT=0
+    - DEFAULT_MODELS_STREAM=true
+    - LITELLM_PERSISTENT_CONNECTIONS=true
+    - LITELLM_CONNECTION_POOL_SIZE=20
+    - HTTPX_HTTP2=1
+    - POSTGRES_USER=litellmadmin
+    - POSTGRES_PASSWORD=litellm_simple_pw_4567
+    - POSTGRES_DB=litellm_db
     volumes:
-      - litellm-db:/var/lib/postgresql/data
+    - litellm-db:/var/lib/postgresql/data
     networks:
-      - litellm_network
+    - llm_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U litellm"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U litellmadmin -d litellm_db
       interval: 10s
       timeout: 5s
       retries: 5
-
+    dns: *id001
   litellm-redis:
-    image: redis:latest
+    image: redis:8
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: litellm-redis
     restart: always
     networks:
-      - litellm_network
-
+    - llm_network
+    dns: *id001
   litellm-proxy:
     image: ghcr.io/berriai/litellm:main-stable
     container_name: litellm-proxy
     labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+    - com.centurylinklabs.watchtower.enable=true
     env_file: .env
     restart: always
     ports:
-      - "4000:4000"
+    - 127.0.0.1:4000:4000
     volumes:
-      - ./litellm-config.yaml:/app/config.yaml
+    - ./litellm-config.yaml:/app/config.yaml
     networks:
-      - litellm_network
-      - llm_network  # Also connect to main network if needed
+    - llm_network
     environment:
-      - DATABASE_URL=postgresql://litellmadmin:litellm_simple_pw_4567@litellm-db:5432/litellm_db
-      - REDIS_URL=redis://litellm-redis:6379
+    - ENABLE_STREAMING_RESPONSE=true
+    - STREAM_TIMEOUT=0
+    - DEFAULT_MODELS_STREAM=true
+    - LITELLM_PERSISTENT_CONNECTIONS=true
+    - LITELLM_CONNECTION_POOL_SIZE=20
+    - HTTPX_HTTP2=1
+    - WEB_CONCURRENCY=4
+    - LITELLM_WORKERS=4
+    - ASYNCIO_PARALLELISM=100
+    - DATABASE_URL=postgresql://litellmadmin:litellm_simple_pw_4567@litellm-db:5432/litellm_db
+    - STORE_MODEL_IN_DB=True
     depends_on:
-      - litellm-db
-      - litellm-redis
-      - ollama
-    command: ["--config", "/app/config.yaml", "--port", "4000"]
-
+    - litellm-db
+    - litellm-redis
+    - ollama
+    command:
+    - --config
+    - /app/config.yaml
+    - --port
+    - '4000'
+    dns: *id001
   litellm-prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     container_name: litellm-prometheus
     restart: always
     volumes:
-      - prometheus_data:/prometheus
+    - prometheus_data:/prometheus
     networks:
-      - litellm_network
-
+    - llm_network
+    dns: *id001
   watchtower:
-    image: containrrr/watchtower
+    image: containrrr/watchtower:latest
     container_name: watchtower
     restart: always
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # Update containers but don't change their configurations
+      - DOCKER_API_VERSION=1.44
+      - ENABLE_STREAMING_RESPONSE=true
+      - STREAM_TIMEOUT=0
+      - DEFAULT_MODELS_STREAM=true
+      - LITELLM_PERSISTENT_CONNECTIONS=true
+      - LITELLM_CONNECTION_POOL_SIZE=20
+      - HTTPX_HTTP2=1
       - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_INCLUDE_STOPPED=false
-      - WATCHTOWER_REVIVE_STOPPED=false
-      - WATCHTOWER_SCHEDULE=0 0 4 * * *
-      # Don't update Open WebUI automatically to prevent config changes
       - WATCHTOWER_LABEL_ENABLE=true
-    healthcheck:
-      test: ["CMD", "/watchtower", "--health-check"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
+      - WATCHTOWER_SCHEDULE=0 0 3 * * *
+      - TZ=America/New_York
+    dns: *id001
 volumes:
-  ollama_data:
+  ollama:
     external: true
-    name: ollama
   open-webui:
     external: true
-    name: open-webui
   litellm-db:
     external: true
-    name: litellm-db
   prometheus_data:
     external: true
     name: litellm-prometheus
-
 networks:
   llm_network:
     name: llm_network
@@ -150,5 +175,3 @@ networks:
   litellm_network:
     name: litellm_llm_network
     external: true
-
-# Add labels to protect critical services
