@@ -1,0 +1,81 @@
+model_list:
+  # OpenAI Models
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+      timeout: 600
+      max_retries: 3
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: openai/gpt-4-turbo
+      api_key: os.environ/OPENAI_API_KEY
+      timeout: 600
+      max_retries: 3
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY
+      timeout: 600
+      max_retries: 3
+
+  # Anthropic Models
+  - model_name: claude-3-5-sonnet
+    litellm_params:
+      model: anthropic/claude-3-5-sonnet-20241022
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 600
+      max_retries: 3
+  - model_name: claude-3-opus
+    litellm_params:
+      model: anthropic/claude-3-opus-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+      timeout: 600
+      max_retries: 3
+
+  # Google Gemini
+  - model_name: gemini-1.5-pro
+    litellm_params:
+      model: gemini/gemini-1.5-pro-latest
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 600
+      max_retries: 3
+  - model_name: gemini-1.5-flash
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 600
+      max_retries: 3
+
+  # DeepSeek
+  - model_name: deepseek-chat
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+      timeout: 600
+      max_retries: 3
+
+  # Local Ollama
+  - model_name: ollama-llama3
+    litellm_params:
+      model: ollama/llama3
+      api_base: http://ollama:11434
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  stream: true
+  max_parallel_requests: 100
+  request_timeout: 600
+  num_retries: 3
+  cache: true
+  cache_params:
+    type: redis
+    host: litellm-redis
+    port: 6379
+    ttl: 3600
+  success_callback:
+    - prometheus

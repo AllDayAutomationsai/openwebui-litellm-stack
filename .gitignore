@@ -1,10 +1,40 @@
+# Environment and secrets
 .env
+*.env
+!.env.example
+
+# Backup files
 *.backup*
 *.bak*
 *.old
 *.archived*
 backups/
+
+# Database files
 *.db
-*.gz
+*.sqlite
+
+# Logs
 *.log
+*.log.*
+
+# Temporary files
 *.before-pin*
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node modules (if any)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
