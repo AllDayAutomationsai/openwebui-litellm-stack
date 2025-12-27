@@ -29,19 +29,18 @@ Ask your agent to:
 - "Make a spreadsheet comparing X and Y"
 
 ### Google Sheets (Requires Setup)
-1. **Rotate your credentials** (previous ones were exposed)
-2. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-3. Create new OAuth credentials
-4. Update `/root/llm-stack/.env`:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create new OAuth credentials
+3. Update `/root/llm-stack/.env`:
    ```
    GOOGLE_SHEETS_CLIENT_ID=your_new_client_id
    GOOGLE_SHEETS_CLIENT_SECRET=your_new_secret
    ```
-5. In OpenWebUI: Workspace → Tools → Google Sheets Integration → Valves (gear icon)
-6. Enter your Client ID and Secret
-7. Ask agent: "Get the OAuth URL for Google Sheets"
-8. Complete OAuth flow, get refresh token
-9. Add refresh token to Valves
+4. In OpenWebUI: Workspace → Tools → Google Sheets Integration → Valves (gear icon)
+5. Enter your Client ID and Secret
+6. Ask agent: "Get the OAuth URL for Google Sheets"
+7. Complete OAuth flow, get refresh token
+8. Add refresh token to Valves
 
 ## Maintenance
 When updating OpenWebUI base image:
