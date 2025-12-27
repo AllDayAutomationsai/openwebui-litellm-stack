@@ -1,8 +1,6 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     container_name: ollama
     restart: always
     ports:
@@ -26,10 +24,10 @@ services:
     - 8.8.8.8
     - 1.0.0.1
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    build:
+      context: .
+      dockerfile: Dockerfile.openwebui
     container_name: open-webui
-    labels:
-    - com.centurylinklabs.watchtower.enable=true
     restart: always
     ports:
     - 127.0.0.1:3000:8080
@@ -52,15 +50,14 @@ services:
     - LITELLM_MASTER_KEY=DkGrEz6oJvunUmnbNYKBATEW9nRP6GbF192RA9moeOc=
     - LITELLM_SALT_KEY=S4Mho07/pPwkNfn80qzujQ==
     - WEBUI_SECRET_KEY=056a8ba01c4c225d10a2746a4e95ab012b8103aec33b02f921c2825390d4232d
+    - DATABASE_URL=postgresql://openwebui:openwebui_pg_pw_20251221@db:5432/openwebui_db
     depends_on:
     - ollama
     - litellm-proxy
     dns: *id001
-  litellm-db:
+  db:
     image: postgres:16
     container_name: litellm-db
-    labels:
-    - com.centurylinklabs.watchtower.enable=true
     restart: always
     environment:
     - ENABLE_STREAMING_RESPONSE=true
@@ -86,8 +83,6 @@ services:
     dns: *id001
   litellm-redis:
     image: redis:8
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     container_name: litellm-redis
     restart: always
     networks:
@@ -96,8 +91,6 @@ services:
   litellm-proxy:
     image: ghcr.io/berriai/litellm:main-stable
     container_name: litellm-proxy
-    labels:
-    - com.centurylinklabs.watchtower.enable=true
     env_file: .env
     restart: always
     ports:
@@ -116,10 +109,10 @@ services:
     - WEB_CONCURRENCY=4
     - LITELLM_WORKERS=4
     - ASYNCIO_PARALLELISM=100
-    - DATABASE_URL=postgresql://litellmadmin:litellm_simple_pw_4567@litellm-db:5432/litellm_db
+    - DATABASE_URL=postgresql://litellmadmin:litellm_simple_pw_4567@db:5432/litellm_db
     - STORE_MODEL_IN_DB=True
     depends_on:
-    - litellm-db
+    - db
     - litellm-redis
     - ollama
     command:
@@ -130,33 +123,12 @@ services:
     dns: *id001
   litellm-prometheus:
     image: prom/prometheus:latest
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     container_name: litellm-prometheus
     restart: always
     volumes:
     - prometheus_data:/prometheus
     networks:
     - llm_network
-    dns: *id001
-  watchtower:
-    image: containrrr/watchtower:latest
-    container_name: watchtower
-    restart: always
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - DOCKER_API_VERSION=1.44
-      - ENABLE_STREAMING_RESPONSE=true
-      - STREAM_TIMEOUT=0
-      - DEFAULT_MODELS_STREAM=true
-      - LITELLM_PERSISTENT_CONNECTIONS=true
-      - LITELLM_CONNECTION_POOL_SIZE=20
-      - HTTPX_HTTP2=1
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
-      - WATCHTOWER_SCHEDULE=0 0 3 * * *
-      - TZ=America/New_York
     dns: *id001
 volumes:
   ollama:

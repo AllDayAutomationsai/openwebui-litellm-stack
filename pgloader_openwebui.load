@@ -1,0 +1,12 @@
+LOAD DATABASE
+     FROM sqlite:///backup/openwebui_db_20251221_180332_pgloader2.sqlite
+     INTO postgresql://openwebui:openwebui_pg_pw_20251221@db:5432/openwebui_db
+ WITH
+     include drop,
+     create tables,
+     reset sequences,
+     batch rows = 1000,
+     prefetch rows = 1000,
+     workers = 4,
+     concurrency = 1
+ ALTER SCHEMA 'main' RENAME TO 'public';

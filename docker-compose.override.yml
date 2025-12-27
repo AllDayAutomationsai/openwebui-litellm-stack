@@ -1,0 +1,32 @@
+services:
+  litellm-proxy:
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',4000)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  open-webui:
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+  
+  ollama:
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+  
+  litellm-redis:
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Note: python-docx was installed manually. To make it persistent,
+  # consider creating a custom Dockerfile or mounting a requirements file.

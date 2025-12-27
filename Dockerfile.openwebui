@@ -1,0 +1,12 @@
+# Custom OpenWebUI image with document generation support
+FROM ghcr.io/open-webui/open-webui:main
+
+# Install additional Python packages for document generation tools
+RUN pip install --no-cache-dir python-docx
+
+# Copy tools and scripts
+COPY openwebui-tools/ /app/custom-tools/
+COPY import-tools-to-db.py /app/import-tools-to-db.py
+COPY startup-wrapper.sh /app/startup-wrapper.sh
+
+CMD ["/app/startup-wrapper.sh"]

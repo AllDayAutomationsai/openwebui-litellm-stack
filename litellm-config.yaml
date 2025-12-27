@@ -1,28 +1,42 @@
 model_list:
+- model_name: dall-e-3
+  litellm_params:
+    model: openai/dall-e-3
+    api_key: os.environ/OPENAI_API_KEY
+- model_name: flux-pro
+  litellm_params:
+    model: together_ai/black-forest-labs/FLUX.1.1-pro
+    api_key: os.environ/TOGETHERAI_API_KEY
+- model_name: imagen-3
+  litellm_params:
+    model: gemini/imagen-3.0-generate-001
+    api_key: os.environ/GEMINI_API_KEY
+
+# OpenAI Models
 - model_name: gpt-5.1-2025-11-13
   litellm_params:
     model: openai/gpt-5.1-2025-11-13
     api_key: os.environ/OPENAI_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: GPT-5-PRO-2025-10-06
   litellm_params:
     model: openai/gpt-5-pro-2025-10-06
     api_key: os.environ/OPENAI_API_KEY
     timeout: 600
     max_retries: 3
-- model_name: gemini-pro-3-review
-  litellm_params:
-    model: gemini/gemini-3-pro-preview
-    api_key: os.environ/GEMINI_API_KEY
-    timeout: 600
-    max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: gpt-4o
   litellm_params:
     model: openai/gpt-4o
     api_key: os.environ/OPENAI_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: gpt-4-turbo
   litellm_params:
     model: openai/gpt-4-turbo
@@ -41,6 +55,32 @@ model_list:
     api_key: os.environ/OPENAI_API_KEY
     timeout: 600
     max_retries: 3
+- model_name: gpt-5.2
+  litellm_params:
+    model: openai/gpt-5.2
+    api_key: os.environ/OPENAI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gpt-5.2-thinking
+  litellm_params:
+    model: openai/gpt-5.2-thinking
+    api_key: os.environ/OPENAI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gpt-5.2-instant
+  litellm_params:
+    model: openai/gpt-5.2-instant
+    api_key: os.environ/OPENAI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+
+# Claude Models - with native web search
 - model_name: claude-3-opus-20240229
   litellm_params:
     model: anthropic/claude-3-opus-20240229
@@ -65,24 +105,108 @@ model_list:
     api_key: os.environ/ANTHROPIC_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: claude-3-5-sonnet-20241022
   litellm_params:
     model: anthropic/claude-3-5-sonnet-20241022
     api_key: os.environ/ANTHROPIC_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: claude-opus-4-1-20250805
+  litellm_params:
+    model: anthropic/claude-opus-4-1-20250805
+    api_key: os.environ/ANTHROPIC_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: claude-sonnet-4-20250514
+  litellm_params:
+    model: anthropic/claude-sonnet-4-20250514
+    api_key: os.environ/ANTHROPIC_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: claude-opus-4-20250514
+  litellm_params:
+    model: anthropic/claude-opus-4-20250514
+    api_key: os.environ/ANTHROPIC_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: claude-3-7-sonnet-20250219
+  litellm_params:
+    model: anthropic/claude-3-7-sonnet-20250219
+    api_key: os.environ/ANTHROPIC_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+
+# Gemini Models - with Google Search grounding
+- model_name: gemini-pro-3-review
+  litellm_params:
+    model: gemini/gemini-1.5-pro-latest
+    api_key: os.environ/GEMINI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: gemini-1.5-pro
   litellm_params:
-    model: vertex_ai/gemini-1.5-pro-preview-0409
+    model: gemini/gemini-1.5-pro
     api_key: os.environ/GEMINI_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
 - model_name: gemini-1.5-flash
   litellm_params:
-    model: gemini/models/gemini-1.5-flash
+    model: gemini/gemini-1.5-flash
     api_key: os.environ/GEMINI_API_KEY
     timeout: 600
     max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gemini-2.5-pro
+  litellm_params:
+    model: gemini/gemini-2.5-pro
+    api_key: os.environ/GEMINI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gemini-2.5-flash
+  litellm_params:
+    model: gemini/gemini-2.5-flash
+    api_key: os.environ/GEMINI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gemini-2.0-flash
+  litellm_params:
+    model: gemini/gemini-2.0-flash
+    api_key: os.environ/GEMINI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+- model_name: gemini-3-pro
+  litellm_params:
+    model: gemini/gemini-3-pro-preview
+    api_key: os.environ/GEMINI_API_KEY
+    timeout: 600
+    max_retries: 3
+  model_info:
+    supports_web_search: true
+
+# Other Models
 - model_name: deepseek-chat
   litellm_params:
     model: deepseek/deepseek-chat
@@ -99,10 +223,11 @@ model_list:
   litellm_params:
     model: ollama/llama3
     api_base: http://ollama:11434
+
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
 litellm_settings:
-  drop_params: true
+  drop_params: false
   set_verbose: false
   stream: true
   max_parallel_requests: 100
